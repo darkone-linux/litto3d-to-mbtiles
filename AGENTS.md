@@ -41,11 +41,24 @@ python3 litto3d_to_mbtiles.py <répertoire_litto3d> <fichier_de_sortie.mbtiles> 
 
 Options :
 
-- `--resolution` -> Résolution MNT à utiliser
+- `--resolution` : Résolution MNT à utiliser (1M ou 5M, défaut: 1M)
+- `--zoom-min` : Niveau de zoom minimal (défaut: 10)
+- `--zoom-max` : Niveau de zoom maximal (défaut: 16)
+- `--processes` : Nombre de processus parallèles pour gdal2tiles (défaut: 4)
+- `--resampling` : Méthode de rééchantillonnage (bilinear, cubic, near, average; défaut: bilinear)
+- `--keep-tmp` : Conserver les fichiers temporaires pour debug
 
 ### Table des couleurs
 
-La table des couleurs suivante doit être utilisée :
+La table des couleurs suivante est utilisée (bathymétrie uniquement) :
+
+- 0 à -1 m : dégradé rouge → orange
+- -1 à -2 m : orange → jaune
+- -2 à -3 m : jaune → bleu clair
+- -3 à -10 m : dégradé bleu clair → bleu foncé
+- -10 à -50 m : bleu foncé → bleu très foncé
+
+Les valeurs positives (terre) et NoData sont rendues transparentes.
 
 ## Prochaines actions à prévoir
 
