@@ -50,12 +50,13 @@ Options :
 
 ### Table des couleurs
 
-La table des couleurs suivante est utilisée (bathymétrie uniquement) :
+La table des couleurs suivante est utilisée (dégradés, bathymétrie uniquement) :
 
-- 0 à -1 m : dégradé rouge → orange
-- -1 à -2 m : orange → jaune
-- -2 à -3 m : jaune → bleu clair
-- -3 à -10 m : dégradé bleu clair → bleu foncé
+- 0 à -1 m : gris foncé → gris
+- -1 à -1,5 m : gris → gris-cyan
+- -1,5 à -2 m : gris-cyan → cyan
+- -2 à -3 m : cyan → bleu
+- -3 à -10 m : bleu → bleu foncé
 - -10 à -50 m : bleu foncé → bleu très foncé
 
 Les valeurs positives (terre) et NoData sont rendues transparentes.
