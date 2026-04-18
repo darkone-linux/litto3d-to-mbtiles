@@ -50,11 +50,29 @@ NODATA_INTERNAL = -99999.0
 
 # Table des couleurs pour gdaldem color-relief
 # Format : <altitude_m>  <R> <G> <B> <A>
+# Valeurs positives = altitude terrestre
 # Valeurs négatives = profondeur sous la mer
 # nv = NoData → transparent
-COLOR_TABLE = """\
+
+COLOR_TABLE_BATHYMETRY = """\
 nv 0 0 0 0
 0    80  80  80 255
+-1   150 150 150 255
+-1.5 140 170 170 255
+-2     0 255 255 255
+-3     0   0 255 255
+-10    0   0 150 255
+-50    0   5  50 255
+"""
+
+COLOR_TABLE_WITH_RELIEF = """\
+nv 0 0 0 0
+100   60  30   0 255
+20   100  60  30 255
+10   120  80  40 255
+5     34 139  34 255
+2     50 205  50 255
+0    220 220   0 255
 -1   150 150 150 255
 -1.5 140 170 170 255
 -2     0 255 255 255
@@ -144,7 +162,11 @@ def main() -> None:
                         help="Méthode de rééchantillonnage")
     parser.add_argument("--keep-tmp", action="store_true",
                         help="Conserver les fichiers temporaires (debug)")
+    parser.add_argument("--with-relief", action="store_true",
+                        help="Inclure les sondes positives (relief terrestrial)")
     args = parser.parse_args()
+
+    color_table = COLOR_TABLE_WITH_RELIEF if args.with_relief else COLOR_TABLE_BATHYMETRY
 
     # ── Vérification des prérequis ─────────────────────────────────────────
     print("\n[0/6] Vérification des dépendances...")
@@ -180,13 +202,15 @@ def main() -> None:
             *asc_files,
         ])
 
-        # ── Étape 3 : Masquage des valeurs positives ──────────────────────
-        # On conserve uniquement les profondeurs (valeurs < 0)
-        # La valeur NoData du fichier source (souvent -99999) est exclue
-        print("\n[3/6] Masquage des sondes positives (terre/valeurs NoData)...")
+        # ── Étape 3 : Masquage des valeurs NoData ──────────────────────
+        # Par défaut on conserve uniquement les profondeurs (valeurs < 0)
+        # Avec --with-relief on conserve toutes les valeurs valides (terme + bathymétrie)
+        print("\n[3/6] Masquage des valeurs NoData...")
         masked = os.path.join(tmpdir, "masked.tif")
-        # Expression : garde A si A est une profondeur valide, sinon → NODATA
-        expr = f"numpy.where((A < 0) & (A > {NODATA_INTERNAL}), A, {NODATA_INTERNAL})"
+        if args.with_relief:
+            expr = f"numpy.where(A > {NODATA_INTERNAL}, A, {NODATA_INTERNAL})"
+        else:
+            expr = f"numpy.where((A < 0) & (A > {NODATA_INTERNAL}), A, {NODATA_INTERNAL})"
         run([
             "gdal_calc.py",
             "-A", vrt,
@@ -220,10 +244,11 @@ def main() -> None:
         ])
 
         # ── Étape 5 : Dégradé de couleur (bleu clair → bleu foncé) ───────
-        print("\n[5/6] Application du dégradé de bleu bathymétrique...")
+        mode_label = "avec relief terrestre" if args.with_relief else "bathymétrie seule"
+        print(f"\n[5/6] Application du dégradé ({mode_label})...")
         color_file = os.path.join(tmpdir, "colors.txt")
         with open(color_file, "w") as fh:
-            fh.write(COLOR_TABLE)
+            fh.write(color_table)
 
         colored = os.path.join(tmpdir, "colored.tif")
         run([

@@ -47,19 +47,28 @@ Options :
 - `--processes` : Nombre de processus parallèles pour gdal2tiles (défaut: 4)
 - `--resampling` : Méthode de rééchantillonnage (bilinear, cubic, near, average; défaut: bilinear)
 - `--keep-tmp` : Conserver les fichiers temporaires pour debug
+- `--with-relief` : Inclure les sondes positives (relief terrestre)
 
 ### Table des couleurs
 
-La table des couleurs suivante est utilisée (dégradés, bathymétrie uniquement) :
+La table des couleurs suivante est utilisée (dégradés) :
 
-- 0 à -1 m : gris foncé → gris
+- 100 m et + : marron foncé
+- 100 à 20 m : marron foncé -> marron 
+- 20 à 10 m : marron -> vert foncé
+- 10 à 5 m : vert foncé -> vert clair
+- 5 à 2 m : vert clair -> jaune
+- 2 à +0 m : jaune -> jaune-gris
+- -0 à -1 m : gris foncé → gris
 - -1 à -1,5 m : gris → gris-cyan
 - -1,5 à -2 m : gris-cyan → cyan
 - -2 à -3 m : cyan → bleu
 - -3 à -10 m : bleu → bleu foncé
 - -10 à -50 m : bleu foncé → bleu très foncé
 
-Les valeurs positives (terre) et NoData sont rendues transparentes.
+Les valeurs NoData sont rendues transparentes.
+Sans `--with-relief` : seules les profondeurs (valeurs < 0) sont affichées.
+Avec `--with-relief` : les altitudes terrestres positives sont aussi affichées.
 
 ## Prochaines actions à prévoir
 
