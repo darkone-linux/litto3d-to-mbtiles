@@ -56,17 +56,6 @@ NODATA_INTERNAL = -99999.0
 
 COLOR_TABLE_BATHYMETRY = """\
 nv 0 0 0 0
-0    80  80  80 255
--1   150 150 150 255
--1.5 140 170 170 255
--2     0 255 255 255
--3     0   0 255 255
--10    0   0 150 255
--50    0   5  50 255
-"""
-
-COLOR_TABLE_WITH_RELIEF = """\
-nv 0 0 0 0
 100   60  30   0 255
 20   100  60  30 255
 10   120  80  40 255
@@ -77,8 +66,29 @@ nv 0 0 0 0
 -1.5 140 170 170 255
 -2     0 255 255 255
 -3     0   0 255 255
+-5     0   0 200 255
 -10    0   0 150 255
+-20    0  15 110 255
+-30    0  10  80 255
 -50    0   5  50 255
+-100   0   2  35 255
+-200   0   0  30 255
+"""
+
+COLOR_TABLE_WITHOUT_EARTH = """\
+nv 0 0 0 0
+0    0   0   0   0
+-1   150 150 150 255
+-1.5 140 170 170 255
+-2     0 255 255 255
+-3     0   0 255 255
+-5     0   0 200 255
+-10    0   0 150 255
+-20    0  15 110 255
+-30    0  10  80 255
+-50    0   5  50 255
+-100   0   2  35 255
+-200   0   0  30 255
 """
 
 # COLOR_TABLE = """\
@@ -162,14 +172,14 @@ def main() -> None:
                         help="Méthode de rééchantillonnage")
     parser.add_argument("--keep-tmp", action="store_true",
                         help="Conserver les fichiers temporaires (debug)")
-    parser.add_argument("--with-relief", action="store_true",
-                        help="Inclure les sondes positives (relief terrestrial)")
+    parser.add_argument("--without-earth", action="store_true",
+                        help="Exclure les sondes positives (relief terrestre)")
     args = parser.parse_args()
 
-    color_table = COLOR_TABLE_WITH_RELIEF if args.with_relief else COLOR_TABLE_BATHYMETRY
+    color_table = COLOR_TABLE_WITHOUT_EARTH if args.without_earth else COLOR_TABLE_BATHYMETRY
 
     # ── Vérification des prérequis ─────────────────────────────────────────
-    print("\n[0/6] Vérification des dépendances...")
+    print("\n[0/7] Vérification des dépendances...")
     check_dependencies()
 
     # ── Création du répertoire de travail ──────────────────────────────────
@@ -183,7 +193,7 @@ def main() -> None:
     try:
 
         # ── Étape 1 : Recherche des fichiers .asc ─────────────────────────
-        print(f"\n[1/6] Recherche des fichiers MNT_{args.resolution}...")
+        print(f"\n[1/7] Recherche des fichiers MNT_{args.resolution}...")
         asc_files = find_asc_files(args.input_dir, args.resolution)
         if not asc_files:
             print(f"❌ Aucun fichier MNT_{args.resolution} trouvé dans {args.input_dir}")
@@ -193,7 +203,7 @@ def main() -> None:
             print(f"     • {f}")
 
         # ── Étape 2 : Assemblage VRT ──────────────────────────────────────
-        print("\n[2/6] Assemblage en mosaïque VRT...")
+        print("\n[2/7] Assemblage en mosaïque VRT...")
         vrt = os.path.join(tmpdir, "mosaic.vrt")
         run([
             "gdalbuildvrt",
@@ -203,14 +213,11 @@ def main() -> None:
         ])
 
         # ── Étape 3 : Masquage des valeurs NoData ──────────────────────
-        # Par défaut on conserve uniquement les profondeurs (valeurs < 0)
-        # Avec --with-relief on conserve toutes les valeurs valides (terme + bathymétrie)
-        print("\n[3/6] Masquage des valeurs NoData...")
+        # On conserve toujours toutes les valeurs valides (terre + bathymétrie)
+        # Le masquage des valeurs positives sera géré dans color-relief
+        print("\n[3/7] Masquage des valeurs NoData...")
         masked = os.path.join(tmpdir, "masked.tif")
-        if args.with_relief:
-            expr = f"numpy.where(A > {NODATA_INTERNAL}, A, {NODATA_INTERNAL})"
-        else:
-            expr = f"numpy.where((A < 0) & (A > {NODATA_INTERNAL}), A, {NODATA_INTERNAL})"
+        expr = f"numpy.where(A > {NODATA_INTERNAL}, A, {NODATA_INTERNAL})"
         run([
             "gdal_calc.py",
             "-A", vrt,
@@ -226,7 +233,7 @@ def main() -> None:
         ])
 
         # ── Étape 4 : Reprojection en Web Mercator ────────────────────────
-        print(f"\n[4/6] Reprojection EPSG:32621 → {OUTPUT_CRS}...")
+        print(f"\n[4/7] Reprojection EPSG:32621 → {OUTPUT_CRS}...")
         reprojected = os.path.join(tmpdir, "reprojected.tif")
         run([
             "gdalwarp",
@@ -243,9 +250,21 @@ def main() -> None:
             masked, reprojected,
         ])
 
-        # ── Étape 5 : Dégradé de couleur (bleu clair → bleu foncé) ───────
-        mode_label = "avec relief terrestre" if args.with_relief else "bathymétrie seule"
-        print(f"\n[5/6] Application du dégradé ({mode_label})...")
+        # ── Étape 4.5 : Génération du hillshade (effet de relief) ───────────
+        print("\n[4.5/7] Génération du hillshade (effet de relief)...")
+        hillshade = os.path.join(tmpdir, "hillshade.tif")
+        run([
+            "gdaldem", "hillshade",
+            "-z", "1",
+            "-multidirectional",
+            reprojected, hillshade,
+            "-co", "COMPRESS=LZW",
+            "-co", "TILED=YES",
+        ])
+
+        # ── Étape 5 : Dégradé de couleur + blend avec hillshade ─────────────
+        mode_label = "sans terre (bathymétrie seule)" if args.without_earth else "avec relief terrestre"
+        print(f"\n[5/7] Application du dégradé ({mode_label}) + blend hillshade...")
         color_file = os.path.join(tmpdir, "colors.txt")
         with open(color_file, "w") as fh:
             fh.write(color_table)
@@ -256,13 +275,31 @@ def main() -> None:
             reprojected,
             color_file,
             colored,
-            "-alpha",                 # Canal alpha pour la transparence sur zones terrestres
+            "-alpha",
             "-co", "COMPRESS=LZW",
             "-co", "TILED=YES",
         ])
 
-        # ── Étape 6 : Export MBTiles ──────────────────────────────────────
-        print(f"\n[6/6] Génération des tuiles PNG → MBTiles "
+        # Blend des couleurs avec le hillshade (effet de relief 3D)
+        # NOTE: Le blend HSV peut causer des artefacts, à désactiver si problème
+        colored_with_hillshade = os.path.join(tmpdir, "colored_hillshade.tif")
+        run([
+            "gdal", "raster", "blend",
+            "--operator=hsv-value",
+            "--overlay", hillshade,
+            colored,
+            colored_with_hillshade,
+            "--co", "COMPRESS=LZW",
+            "--co", "TILED=YES",
+            "--overwrite",
+        ])
+
+        # Pour activer le blend: output_raster = colored_with_hillshade
+        # Pour désactiver le blend: output_raster = colored
+        output_raster = colored  # TODO: tester avec colored_with_hillshade si le problème est résolu
+
+        # ── Étape 7 : Export MBTiles ───────────────────────────────────────
+        print(f"\n[7/7] Génération des tuiles PNG → MBTiles "
               f"(zoom {args.zoom_min}–{args.zoom_max})...")
 
         if os.path.exists(output_path):
@@ -280,7 +317,7 @@ def main() -> None:
                 "--resampling", args.resampling,
                 "--webviewer",  "none",
                 "--xyz",        # Schéma XYZ (standard OpenLayers/OpenCPN)
-                colored,
+                output_raster,
                 tiles_dir,
             ])
             # mb-util empaquette le répertoire de tuiles en MBTiles
@@ -300,7 +337,7 @@ def main() -> None:
                 "-of", "MBTiles",
                 "-co", "TILE_FORMAT=PNG",
                 "-co", "ZOOM_LEVEL_STRATEGY=UPPER",
-                colored,
+                output_raster,
                 output_path,
             ])
             # Ajout des niveaux de zoom inférieurs via overviews

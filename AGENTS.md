@@ -1,5 +1,16 @@
 # Contexte du projet pour agents IA
 
+## Règles de développement
+
+Après toute modification du script, tester systématiquement avec :
+
+```sh
+python3 litto3d_to_mbtiles.py test test/test.mbtiles --zoom-max 18
+python3 litto3d_to_mbtiles.py test test/test_earth.mbtiles --zoom-max 18 --without-earth
+```
+
+Vérifier l'intégrité des fichiers `.mbtiles` générés.
+
 ## Introduction
 
 Ce script convertit les fichiers MNT LITTO3D (.asc) en MBTiles pour OpenCPN. Le résultat doit 
@@ -47,7 +58,7 @@ Options :
 - `--processes` : Nombre de processus parallèles pour gdal2tiles (défaut: 4)
 - `--resampling` : Méthode de rééchantillonnage (bilinear, cubic, near, average; défaut: bilinear)
 - `--keep-tmp` : Conserver les fichiers temporaires pour debug
-- `--with-relief` : Inclure les sondes positives (relief terrestre)
+- `--without-earth` : Exclure les sondes positives (relief terrestre)
 
 ### Table des couleurs
 
@@ -63,27 +74,16 @@ La table des couleurs suivante est utilisée (dégradés) :
 - -1 à -1,5 m : gris → gris-cyan
 - -1,5 à -2 m : gris-cyan → cyan
 - -2 à -3 m : cyan → bleu
-- -3 à -10 m : bleu → bleu foncé
-- -10 à -50 m : bleu foncé → bleu très foncé
+- -3 à -5 m : bleu -> bleu foncé
+- -5 à -10 m : bleu foncé -> bleu moyen
+- -10 à -20 m : bleu moyen -> bleu
+- -20 à -30 m : bleu -> bleu clair
+- -30 à -50 m : bleu clair -> bleu foncé
+- -50 à -100 m : bleu foncé -> bleu très foncé
+- -100 et en deça : bleu très foncé -> bleu noir (jusqu'à -200m)
 
 Les valeurs NoData sont rendues transparentes.
 Sans `--with-relief` : seules les profondeurs (valeurs < 0) sont affichées.
 Avec `--with-relief` : les altitudes terrestres positives sont aussi affichées.
 
-## Prochaines actions à prévoir
-
-### Sondes positives
-
-Étendre la carte aux sondes positives : 
-
-- Ajouter une option `--with-relief` qui ajoute les sondes positives.
-- Avec cette option, tous les points sont utilisés.
-- La table des couleurs est étendue aux sondes positives.
-
-### Couleurs et relief
-
-Introduire un effet de relief. Le tutoriel suivant explique comment faire avec gdal :
-
-- https://gdal.org/en/release-3.12/tutorials/raster_dtm_tut.html
-
-Il faudra adapter les options de la version utilisée si celles du tutoriel ne fonctionnent pas.
+L'effet de relief (hillshade) est systématiquement appliqué via un blend HSV avec les couleurs.
