@@ -6,7 +6,7 @@ Après toute modification du script, tester systématiquement avec :
 
 ```sh
 python3 litto3d_to_mbtiles.py test test/test.mbtiles --zoom-max 18
-python3 litto3d_to_mbtiles.py test test/test_earth.mbtiles --zoom-max 18 --without-earth
+python3 litto3d_to_mbtiles.py test test/test_relief.mbtiles --zoom-max 18 --with-relief
 ```
 
 Vérifier l'intégrité des fichiers `.mbtiles` générés.
@@ -58,7 +58,7 @@ Options :
 - `--processes` : Nombre de processus parallèles pour gdal2tiles (défaut: 4)
 - `--resampling` : Méthode de rééchantillonnage (bilinear, cubic, near, average; défaut: bilinear)
 - `--keep-tmp` : Conserver les fichiers temporaires pour debug
-- `--without-earth` : Exclure les sondes positives (relief terrestre)
+- `--with-relief` : Ajouter un effet de relief (hillshade) à la carte
 
 ### Table des couleurs
 

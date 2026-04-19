@@ -54,7 +54,7 @@ NODATA_INTERNAL = -99999.0
 # Valeurs négatives = profondeur sous la mer
 # nv = NoData → transparent
 
-COLOR_TABLE_BATHYMETRY = """\
+COLOR_TABLE = """\
 nv 0 0 0 0
 100   60  30   0 255
 20   100  60  30 255
@@ -74,40 +74,6 @@ nv 0 0 0 0
 -100   0   2  35 255
 -200   0   0  30 255
 """
-
-COLOR_TABLE_WITHOUT_EARTH = """\
-nv 0 0 0 0
-0    0   0   0   0
--1   150 150 150 255
--1.5 140 170 170 255
--2     0 255 255 255
--3     0   0 255 255
--5     0   0 200 255
--10    0   0 150 255
--20    0  15 110 255
--30    0  10  80 255
--50    0   5  50 255
--100   0   2  35 255
--200   0   0  30 255
-"""
-
-# COLOR_TABLE = """\
-# nv 0 0 0 0
-# 0 200 232 245 255
-# -0.5 160 215 238 255
-# -1 110 190 230 255
-# -2 70 160 215 255
-# -3 40 130 195 255
-# -5 20 100 175 255
-# -7 10 75 150 255
-# -10 5 55 125 255
-# -15 2 38 100 255
-# -20 0 25 80 255
-# -30 0 15 65 255
-# -50 0 8 50 255
-# -100 0 3 35 255
-# """
-
 
 # ── Utilitaires ─────────────────────────────────────────────────────────────
 
@@ -147,7 +113,6 @@ def find_asc_files(base_dir: str, resolution: str) -> list[str]:
     ]
     return sorted(files)
 
-
 # ── Pipeline principal ──────────────────────────────────────────────────────
 
 def main() -> None:
@@ -172,11 +137,11 @@ def main() -> None:
                         help="Méthode de rééchantillonnage")
     parser.add_argument("--keep-tmp", action="store_true",
                         help="Conserver les fichiers temporaires (debug)")
-    parser.add_argument("--without-earth", action="store_true",
-                        help="Exclure les sondes positives (relief terrestre)")
+    parser.add_argument("--with-relief", action="store_true",
+                        help="Ajouter un effet de relief (hillshade) à la carte")
     args = parser.parse_args()
 
-    color_table = COLOR_TABLE_WITHOUT_EARTH if args.without_earth else COLOR_TABLE_BATHYMETRY
+    color_table = COLOR_TABLE
 
     # ── Vérification des prérequis ─────────────────────────────────────────
     print("\n[0/7] Vérification des dépendances...")
@@ -263,7 +228,7 @@ def main() -> None:
         ])
 
         # ── Étape 5 : Dégradé de couleur + blend avec hillshade ─────────────
-        mode_label = "sans terre (bathymétrie seule)" if args.without_earth else "avec relief terrestre"
+        mode_label = "sans relief" if args.with_relief else "avec relief"
         print(f"\n[5/7] Application du dégradé ({mode_label}) + blend hillshade...")
         color_file = os.path.join(tmpdir, "colors.txt")
         with open(color_file, "w") as fh:
@@ -294,9 +259,12 @@ def main() -> None:
             "--overwrite",
         ])
 
-        # Pour activer le blend: output_raster = colored_with_hillshade
-        # Pour désactiver le blend: output_raster = colored
-        output_raster = colored  # TODO: tester avec colored_with_hillshade si le problème est résolu
+        # Appliquer le blend hillshade si --with-relief est activé
+        if args.with_relief:
+            output_raster = colored_with_hillshade
+            print("  → Effet de relief activé")
+        else:
+            output_raster = colored
 
         # ── Étape 7 : Export MBTiles ───────────────────────────────────────
         print(f"\n[7/7] Génération des tuiles PNG → MBTiles "
