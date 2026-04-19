@@ -65,32 +65,14 @@ Options :
 
 ### Table des couleurs
 
-La table des couleurs utilisée par gdaldem color-relief (-format : altitude R G B A) :
+Résumé des couleurs :
 
-```
-nv   0   0   0   0      # NoData → transparent
-100  60  30   0 255     # 100m+ : marron foncé
-20  100  60  30 255     # 20-100m : marron foncé → marron
-10  120  80  40 255     # 10-20m : marron → vert foncé
-5    34 139  34 255     # 5-10m : vert foncé → vert clair
-2    50 205  50 255     # 2-5m : vert clair → jaune
-0.1 220 220   0 255     # 0.1-2m : jaune
-0     0   0   0 255     # 0m : ligne de rivage
--0.5 100   0   0 255    # -0.5-0m : gris foncé
--1   150   0   0 255    # -1--0.5m : gris
--1.5 200   0   0 255    # -1.5--1m : gris clair
--2     0 200 255 255    # -2--1.5m : gris-cyan → cyan
--3     0 150 255 255    # -3--2m : cyan
--4     0  70 255 255    # -4--3m : cyan → bleu
--5     0   0 255 255    # -5--4m : bleu
--6     0   0 200 255    # -6--5m : bleu foncé
--8     0   0 150 255    # -8--6m : bleu foncé
--10    0  15 110 255    # -10--8m : bleu foncé
--15    0  10  80 255    # -15--10m : bleu moyen
--50    0   5  50 255    # -50--15m : bleu
--100   0   2  35 255    # -100--50m : bleu clair
--200   0   0  30 255    # -200--100m : bleu foncé
-```
+- 10m et plus : marron clair -> foncé (relief de terre)
+- 2 à 10m : vert clair -> fonçé (non recouvert à marée haute)
+- 0 à 2m : jaune -> vert clair (potentiellement recouvert à marée haute)
+- -1,5 à 0m : rouge -> noir (zone danger à marée basse)
+- -3 à 1,5m : bleu clair -> cyan -> rouge (haut fond navigable)
+- -200 à -3m : bleu foncé -> clair (fonds sans dangers)
 
 Les valeurs NoData sont rendues transparentes (alpha=0).
 
@@ -121,17 +103,17 @@ python3 update-mbtiles.py <source> <destination>
 
 **Usage :** `<source>` = dossier contenant les sous-dossiers LITTO3D, `<destination>` = dossier de sortie
 
-#### Étape 1 : globale basse définition
-- Fichier : `1-global.mbtiles`
+#### Étape 1 : tuile globale basse définition
+- Fichier : `large/global-<zone>.mbtiles`
 - Zoom : 10-16
-- Portée : tutto il repertoire source
+- Source : tout (repertoire racine)
 
 #### Étape 2 : tuiles moyennes
-- Fichiers : `2-XXXX_XXXX.mbtiles` (par sous-dossier)
+- Fichiers : `medium/XXXX_XXXX.mbtiles` (par sous-dossier)
 - Zoom : 17-20
 - Source : sous-dossiers `XXXX_XXXX` à la racine du dossier source
 
-#### Étape 3 : tuiles haute définition (コメント par défaut)
-- Fichiers : `3-XXXX_XXXX-YYYYYYYY.mbtiles`
+#### Étape 3 : petite tuiles haute définition
+- Fichiers : `small/XXXX_XXXX-YYYYYYYY.mbtiles`
 - Zoom : 21-22
 - Source : sous-dossiers `XXXX_XXXX/*_UTM21N_RGSPM06_DANGER50`
