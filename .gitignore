@@ -1,5 +1,6 @@
 trash
 test
+test*
 langlade
 st-pierre
 miquelon
@@ -12,4 +13,3 @@ miquelon
 *.pdf
 *.las
 *.asc
-
