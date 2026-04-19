@@ -8,6 +8,10 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 LITTO3D_SCRIPT = SCRIPT_DIR / "litto3d_to_mbtiles.py"
+ZOOM_MIN = 10
+ZOOM_INTER_1 = 16
+ZOOM_INTER_2 = 20
+ZOOM_MAX = 22
 
 
 def run(cmd: list[str]):
@@ -21,8 +25,8 @@ def check_created(path: Path):
 
 
 def step1(source: Path, destination: Path):
-    print("=== Étape 1 : grosse tuile basse définition (zoom 10-16) ===")
-    dest_file = destination / "16-global.mbtiles"
+    print("=== Étape 1 : grosse tuile basse définition (zoom " + str(ZOOM_MIN) + "-" + str(ZOOM_INTER_1) + ") ===")
+    dest_file = destination / "1-global.mbtiles"
     if dest_file.exists():
         print(f"  {dest_file.name} existe déjà, on passe.")
         return
@@ -30,14 +34,14 @@ def step1(source: Path, destination: Path):
         "python3", str(LITTO3D_SCRIPT),
         str(source),
         str(dest_file),
-        "--zoom-min", "10",
-        "--zoom-max", "16",
+        "--zoom-min", str(ZOOM_MIN),
+        "--zoom-max", str(ZOOM_INTER_1),
     ])
     check_created(dest_file)
 
 
 def step2(source: Path, destination: Path):
-    print("=== Étape 2 : tuiles intermédiaires moyenne définition (zoom 17-18) ===")
+    print("=== Étape 2 : tuiles intermédiaires moyenne définition (zoom " + str(ZOOM_INTER_1 + 1) + "-" + str(ZOOM_INTER_2) + ") ===")
     pattern = re.compile(r"^\d{4}_\d{4}$")
     subdirs = sorted([d for d in source.iterdir() if d.is_dir() and pattern.match(d.name)])
 
@@ -46,7 +50,7 @@ def step2(source: Path, destination: Path):
         return
 
     for subdir in subdirs:
-        dest_file = destination / f"18-{subdir.name}.mbtiles"
+        dest_file = destination / f"2-{subdir.name}.mbtiles"
         if dest_file.exists():
             print(f"  {dest_file.name} existe déjà, on passe.")
             continue
@@ -55,14 +59,15 @@ def step2(source: Path, destination: Path):
             "python3", str(LITTO3D_SCRIPT),
             str(subdir),
             str(dest_file),
-            "--zoom-min", "17",
-            "--zoom-max", "18",
+            "--resampling", "bilinear",
+            "--zoom-min", str(ZOOM_INTER_1 + 1),
+            "--zoom-max", str(ZOOM_INTER_2),
         ])
         check_created(dest_file)
 
 
 def step3(source: Path, destination: Path):
-    print("=== Étape 3 : petites tuiles haute définition (zoom 19-20) ===")
+    print("=== Étape 3 : petites tuiles haute définition (zoom " + str(ZOOM_INTER_2 + 1) + "-" + str(ZOOM_MAX) + ") ===")
     level1_pattern = re.compile(r"^\d{4}_\d{4}$")
     level2_pattern = re.compile(r".*_UTM21N_RGSPM06_DANGER50$")
 
@@ -79,7 +84,7 @@ def step3(source: Path, destination: Path):
         return
 
     for dir_level1, dir_level2 in matches:
-        dest_file = destination / f"20-{dir_level1}-{dir_level2}.mbtiles"
+        dest_file = destination / f"3-{dir_level1}-{dir_level2}.mbtiles"
         if dest_file.exists():
             print(f"  {dest_file.name} existe déjà, on passe.")
             continue
@@ -88,8 +93,8 @@ def step3(source: Path, destination: Path):
             "python3", str(LITTO3D_SCRIPT),
             str(source / dir_level1 / dir_level2),
             str(dest_file),
-            "--zoom-min", "19",
-            "--zoom-max", "20",
+            "--zoom-min", str(ZOOM_INTER_2 + 1),
+            "--zoom-max", str(ZOOM_MAX),
         ])
         check_created(dest_file)
 
@@ -118,7 +123,7 @@ def main():
 
     step1(source, destination)
     step2(source, destination)
-    step3(source, destination)
+    #step3(source, destination)
 
     print("=== Terminé ===")
 

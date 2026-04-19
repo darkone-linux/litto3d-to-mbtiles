@@ -23,9 +23,9 @@ Le programme fait ceci...
 
 ## Etape 1, la grosse tuile base définition
 
-Executer la commande suivante, uniquement si "<destination>/16-global.mbtiles" n'existe pas : 
+Executer la commande suivante, uniquement si "<destination>/1-global.mbtiles" n'existe pas : 
 
-python3 litto3d_to_mbtiles.py "<source>" "<destination>/16-global.mbtiles" --zoom-max 16
+python3 litto3d_to_mbtiles.py "<source>" "<destination>/1-global.mbtiles" --zoom-max 16
 
 ## Etape 2, les tuiles intermédiaires moyenne définition
 
@@ -33,17 +33,17 @@ Pour tous les dossiers <subDir> contenus dans le répertoire <source>, qui sont 
 
 - Si "<destination>/18-<subDir>.mbtiles" existe, continuer sans rien faire, sinon...
 - Exécuter la commande suivante : 
-  - python3 litto3d_to_mbtiles.py "<source>/<subDir>" "<destination>/18-<subDir>.mbtiles" --zoom-min 17 --zoom-max 18
+  - python3 litto3d_to_mbtiles.py "<source>/<subDir>" "<destination>/2-<subDir>.mbtiles" --zoom-min 17 --zoom-max 18
 - Vérifier que le fichier "<destination>/18-<subDir>.mbtiles" a bien été créé (existe)
 
-## Etape 3, les petites tuiles haute définition
+## Etape 3, les petites tuiles haute définition (optionel)
 
 - Matcher tous les chemins dans <source>, dont les dossiers de 2ème niveau matchent "*_UTM21N_RGSPM06_DANGER50". Extraire le nom du dossier de niveau 1 <dirLevel1> et celui de niveau 2 <dirLevel2>. Exemple :
   - Chemin matché : <source>/0555_5180/LITTO3D_SPM_0557_5177_20241001_UTM21N_RGSPM06_DANGER50
   - Dans cet exemple, le dossier de niveau 1 <dirLevel1> est "0555_5180"
   - Et le dossier de niveau 2 <dirLevel2> est "LITTO3D_SPM_0557_5177_20241001_UTM21N_RGSPM06_DANGER50"
 - Pour chaque chemin récupéré :
-  - Considérer le fichier <destFile> dont le chemin est <destination>/20-<dirLevel1>-<dirLevel2>.mbtiles
+  - Considérer le fichier <destFile> dont le chemin est <destination>/3-<dirLevel1>-<dirLevel2>.mbtiles
   - Si <destFile> existe, continuer sans rien faire, sinon...
     - Lancer la commande "python3 litto3d_to_mbtiles.py "<source>/<dirLevel1>/<dirLevel2>" "<destFile>" --zoom-min 19 --zoom-max 20"
     - Vérifier si le fichier <destFile> a bien été créé

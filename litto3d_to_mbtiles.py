@@ -79,15 +79,19 @@ nv 0 0 0 0
 10   120  80  40 255
 5     34 139  34 255
 2     50 205  50 255
-0    220 220   0 255
--1   150 150 150 255
--1.5 140 170 170 255
--2     0 255 255 255
--3     0   0 255 255
--5     0   0 200 255
--10    0   0 150 255
--20    0  15 110 255
--30    0  10  80 255
+0.1  220 220   0 255
+0      0   0   0 255
+-0.5 100   0   0 255
+-1   150   0   0 255
+-1.5 200   0   0 255
+-2     0 200 255 255
+-3     0 150 255 255
+-4     0  70 255 255
+-5     0   0 255 255
+-6     0   0 200 255
+-8     0   0 150 255
+-10    0  15 110 255
+-15    0  10  80 255
 -50    0   5  50 255
 -100   0   2  35 255
 -200   0   0  30 255
@@ -203,16 +207,16 @@ def main() -> None:
         help="Niveau de zoom minimal",
     )
     parser.add_argument(
-        "--zoom-max", type=int, default=16,
+        "--zoom-max", type=int, default=18,
         help="Niveau de zoom maximal",
     )
     parser.add_argument(
-        "--processes", type=int, default=4,
+        "--processes", type=int, default=8,
         help="Nombre de processus parallèles pour gdal2tiles",
     )
     parser.add_argument(
         "--resampling", default="bilinear",
-        choices=["bilinear", "cubic", "cubicspline", "near", "average"],
+        choices=["bilinear", "cubic", "lanczos", "cubicspline", "near", "average"],
         help="Méthode de rééchantillonnage (gdalwarp principal et gdal2tiles)",
     )
     parser.add_argument(

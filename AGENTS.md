@@ -5,8 +5,7 @@
 Après toute modification du script, tester systématiquement avec :
 
 ```sh
-python3 litto3d_to_mbtiles.py test test/test.mbtiles --zoom-max 18
-python3 litto3d_to_mbtiles.py test test/test_relief.mbtiles --zoom-max 18 --with-relief
+python3 litto3d_to_mbtiles.py test test/test.mbtiles
 ```
 
 Vérifier l'intégrité des fichiers `.mbtiles` générés.
@@ -33,7 +32,7 @@ Ce script convertit les fichiers MNT LITTO3D (.asc) en MBTiles pour OpenCPN. Le 
 Pour tester le script, utiliser la commande suivante : 
 
 ```sh
-python3 litto3d_to_mbtiles.py test test/test.mbtiles --zoom-max 18
+python3 litto3d_to_mbtiles.py test test/test.mbtiles
 ```
 
 Ce script génère un fichier `test/test.mbtiles` dont il faut vérifier l'intégrité.
@@ -54,11 +53,10 @@ Options :
 
 - `--resolution` : Résolution MNT à utiliser (1M ou 5M, défaut: 1M)
 - `--zoom-min` : Niveau de zoom minimal (défaut: 10)
-- `--zoom-max` : Niveau de zoom maximal (défaut: 16)
-- `--processes` : Nombre de processus parallèles pour gdal2tiles (défaut: 4)
+- `--zoom-max` : Niveau de zoom maximal (défaut: 18)
+- `--processes` : Nombre de processus parallèles pour gdal2tiles (défaut: 8)
 - `--resampling` : Méthode de rééchantillonnage (bilinear, cubic, near, average; défaut: bilinear)
 - `--keep-tmp` : Conserver les fichiers temporaires pour debug
-- `--with-relief` : Ajouter un effet de relief (hillshade) à la carte
 
 ### Table des couleurs
 
