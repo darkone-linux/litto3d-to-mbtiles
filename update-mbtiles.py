@@ -8,11 +8,11 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 LITTO3D_SCRIPT = SCRIPT_DIR / "litto3d_to_mbtiles.py"
+
 ZOOM_MIN = 10
 ZOOM_INTER_1 = 16
 ZOOM_INTER_2 = 20
 ZOOM_MAX = 22
-
 
 def run(cmd: list[str]):
     """Exécute une commande et laisse sa sortie s'afficher directement."""
@@ -25,8 +25,9 @@ def check_created(path: Path):
 
 
 def step1(source: Path, destination: Path):
-    print("=== Étape 1 : grosse tuile basse définition (zoom " + str(ZOOM_MIN) + "-" + str(ZOOM_INTER_1) + ") ===")
-    dest_file = destination / "1-global.mbtiles"
+    print("\n=== Étape 1 : grosse tuile basse définition (zoom " + str(ZOOM_MIN) + "-" + str(ZOOM_INTER_1) + ") ===\n")
+    os.makedirs(destination / "large", exist_ok=True)
+    dest_file = destination / "large" / ("global-" + os.path.basename(destination) + ".mbtiles")
     if dest_file.exists():
         print(f"  {dest_file.name} existe déjà, on passe.")
         return
@@ -41,7 +42,7 @@ def step1(source: Path, destination: Path):
 
 
 def step2(source: Path, destination: Path):
-    print("=== Étape 2 : tuiles intermédiaires moyenne définition (zoom " + str(ZOOM_INTER_1 + 1) + "-" + str(ZOOM_INTER_2) + ") ===")
+    print("\n=== Étape 2 : tuiles intermédiaires moyenne définition (zoom " + str(ZOOM_INTER_1 + 1) + "-" + str(ZOOM_INTER_2) + ") ===\n")
     pattern = re.compile(r"^\d{4}_\d{4}$")
     subdirs = sorted([d for d in source.iterdir() if d.is_dir() and pattern.match(d.name)])
 
@@ -49,8 +50,9 @@ def step2(source: Path, destination: Path):
         print("  Aucun sous-dossier correspondant trouvé.")
         return
 
+    os.makedirs(destination / "medium", exist_ok=True)
     for subdir in subdirs:
-        dest_file = destination / f"2-{subdir.name}.mbtiles"
+        dest_file = destination / "medium" / f"{subdir.name}.mbtiles"
         if dest_file.exists():
             print(f"  {dest_file.name} existe déjà, on passe.")
             continue
@@ -67,7 +69,7 @@ def step2(source: Path, destination: Path):
 
 
 def step3(source: Path, destination: Path):
-    print("=== Étape 3 : petites tuiles haute définition (zoom " + str(ZOOM_INTER_2 + 1) + "-" + str(ZOOM_MAX) + ") ===")
+    print("\n=== Étape 3 : petites tuiles haute définition (zoom " + str(ZOOM_INTER_2 + 1) + "-" + str(ZOOM_MAX) + ") ===\n")
     level1_pattern = re.compile(r"^\d{4}_\d{4}$")
     level2_pattern = re.compile(r".*_UTM21N_RGSPM06_DANGER50$")
 
@@ -83,8 +85,9 @@ def step3(source: Path, destination: Path):
         print("  Aucun chemin correspondant trouvé.")
         return
 
+    os.makedirs(destination / "small", exist_ok=True)
     for dir_level1, dir_level2 in matches:
-        dest_file = destination / f"3-{dir_level1}-{dir_level2}.mbtiles"
+        dest_file = destination / "small" / f"{dir_level1}-{dir_level2}.mbtiles"
         if dest_file.exists():
             print(f"  {dest_file.name} existe déjà, on passe.")
             continue
@@ -125,7 +128,7 @@ def main():
     step2(source, destination)
     #step3(source, destination)
 
-    print("=== Terminé ===")
+    print("\n=== Terminé ===\n")
 
 
 if __name__ == "__main__":
