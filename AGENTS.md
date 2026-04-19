@@ -14,7 +14,7 @@ Vérifier l'intégrité des fichiers `.mbtiles` générés.
 
 Ce projet contient deux scripts de conversion des fichiers MNT LITTO3D (.asc) en MBTiles pour OpenCPN :
 
-- **litto3d_to_mbtiles.py** : conversion 单 fichier ou dossier unique
+- **litto3d_to_mbtiles.py** : conversion d'un fichier ou dossier unique
 - **update-mbtiles.py** : pipeline complet multi-niveaux pour cartographie HD
 
 Le résultat doit être de bonne qualité et adapté à une navigation avec un voilier dont le tirant d'eau est de 1,5 mètre.
