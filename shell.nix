@@ -4,14 +4,10 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
+
     # GDAL et outils géospatiaux
     gdal
     proj
-    geos
-    libgeotiff
-
-    # Mapnik
-    mapnik
 
     # Outils de tuiles
     mbutil
@@ -21,20 +17,20 @@ pkgs.mkShell {
 
     # Python
     python3
-    python3Packages.fiona
-    python3Packages.shapely
-    python3Packages.pillow
 
     # Outils de débogage
-    qgis
+    #qgis
 
     # Utilitaires
     git
     wget
     curl
+    p7zip
   ];
 
   shellHook = ''
-    echo "OK"
+    echo "Usage:"
+    echo "python3 litto3d_to_mbtiles.py <litto3d_dir> <output.mbtiles> [options]"
+    echo "python3 update-mbtiles.py <source_dir> <output_dir>"
   '';
 }
