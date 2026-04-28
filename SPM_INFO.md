@@ -14,8 +14,8 @@ Légende des couleurs :
 - Rouge foncé : inondable (delta de marnage)
 - Rouge : inondable à marée haute (delta de marnage)
 - Rouge clair : inondable à marée haute de très fort coef (120)
-- Orange : inondable à l'horizon 2010 (fort coef)
-- Jaune : inondable à l'horizon 2010 (prévision pessimiste)
+- Orange : inondable à l'horizon 2100 (fort coef)
+- Jaune : inondable à l'horizon 2100 (prévision pessimiste)
 - Vert et + : non inondable
 
 ## Hauteur d'eau à marée haute pour un fort coefficient (120) à Saint-Pierre-et-Miquelon
